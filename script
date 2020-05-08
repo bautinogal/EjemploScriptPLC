@@ -1,0 +1,124 @@
+//Inputs: les ponemos nombres mas significativos a las entradas
+sensorPression0 = In0;
+sensorPression1 = In1;
+sensorTemp0 = In2;
+sensorTemp1 = In3;
+
+//Outputs: les ponemos nombres mas significativos a las salidas
+alarmaAltaPresion = Out0;
+alarmaBajaPresion = Out1;
+alarmaDifPresion = Out2;
+manometroDifPresion = Out3;
+
+alarmaAltaTemp = Out4;
+alarmaBajaTemp = Out5;
+alarmaDifTemp = Out6;
+termometro = Out7;
+
+//Vars: variables que voy a usar y puedo mostrar en un monitor
+pressureMmHg0 = 0;
+pressureMmHg1 = 0;
+difPressure = 0;
+
+tempCentigrades0 = 0;
+tempCentigrades1 = 0;
+difTemp = 0;
+
+//Constants: constantes que tiene las tolerancias o escalas de los sensores por ej.
+escalaSensorPresion = 200;
+presionMin = 50;
+presionMax = 100;
+diferenciaPresionMax = 50;
+
+escalaSensorTemp = 150;
+tempMin = 20;
+tempMax = 80;
+diferenciaTempMax = 30;
+
+// Funciones:
+// Presión en mmHg del sensor sensorPression0
+getPressure0 = func() {
+        return sensorPression0.read() * escalaSensorPresion;
+    }
+    // Presión en mmHg del sensor sensorPression1
+getPressure1 = func() {
+        return sensorPression1.read() * escalaSensorPresion;
+    }
+    // Temp en grados centigrados del sensor sensorPression0
+getTemp0 = func() {
+        return sensorTemp0.read() * escalaSensorTemp;
+    }
+    // Temp en grados centigrados del sensor sensorPression1
+getTemp1 = func() {
+        return sensorTemp1.read() * escalaSensorTemp;
+    }
+    // Leer sensores y actualizar los valores de los vars
+updateVars = func() {
+        pressureMmHg0 = getPressure0();
+        pressureMmHg1 = getPressure1();
+        difPressure = pressureMmHg0 - pressureMmHg1;
+
+        tempCentigrades0 = getTemp0();
+        tempCentigrades1 = getTemp1();
+        difTemp = tempCentigrades0 - tempCentigrades1;
+    }
+    // Actualizar outputs relacionados a la temp
+updatePressuresOutputs = func() {
+        if (pressureMmHg0 < presionMin || pressureMmHg1 < presionMin) {
+            alarmaBajaPresion.write(1);
+        } else {
+            alarmaBajaPresion.write(0);
+        }
+
+        if (pressureMmHg0 > presionMax || pressureMmHg1 > presionMax) {
+            alarmaAltaPresion.write(1);
+        } else {
+            alarmaAltaPresion.write(0);
+        }
+
+        if (abs(difPressure) > diferenciaPresionMax) {
+            alarmaDifPresion.write(1);
+        } else {
+            alarmaDifPresion.write(0);
+        }
+
+        manometroDifPresion.write(difPressure);
+    }
+    // Actualizar outputs relacionados a la presion
+updateTemperatureOutputs = func() {
+        if (tempCentigrades0 < tempMin || tempCentigrades1 < tempMax) {
+            alarmaBajaTemp.write(1);
+        } else {
+            alarmaBajaTemp.write(0);
+        }
+
+        if (tempCentigrades0 > tempMax || tempCentigrades1 > tempMax) {
+            alarmaAltaTemp.write(1);
+        } else {
+            alarmaAltaTemp.write(0);
+        }
+
+        if (abs(difTemp) > diferenciaTempMax) {
+            alarmaDifTemp.write(1);
+        } else {
+            alarmaDifTemp.write(0);
+        }
+
+        termometro.write(difPressure);
+    }
+    // Actualizar outputs
+updateOutputs = func() {
+        updatePressuresOutputs();
+        updateTemperatureOutputs();
+    }
+    // Esta funcion se llama al inicio
+setup() {
+
+}
+
+// Loop que se repite infinitamente luego del inicio
+loop() {
+    updateVars();
+    updateOutputs();
+    log();
+}
